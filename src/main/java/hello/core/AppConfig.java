@@ -14,14 +14,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfig {
 
+    // @Bean memberService -> new MemoryMemberRepository()
+    // @Bean orderService -> new MemoryMemberRepository()
+
+    // * 우리의 의도
+    // call AppConfig.memberService
+    // call AppConfig.memberRepository 1 호출
+    // call AppConfig.memberRepository 2 호출
+    // call AppConfig.orderService
+    // call AppConfig.memberRepository 3 호출 될 것이라고 생각
+
+    // * 실제 출력 => 스프링이 어떤 방법을 써서 싱글톤을 보장해 주는구나!
+    // call AppConfig.memberService
+    // call AppConfig.memberRepository 실제로는 1번 호출 됨.
+    // call AppConfig.orderService
     @Bean
     public MemberService memberService() {
+        System.out.println("call AppConfig.memberService");
         return new MemberServiceImpl(memberRepository());
 //      생성자를 톻해서 객체가 들어간다고 하여, "생성자 주입" 이라고 한다.
     }
 
     @Bean
     public MemoryMemberRepository memberRepository() {
+        System.out.println("call AppConfig.memberRepository");
         return new MemoryMemberRepository();
 /*
       "리팩터링"함 으로써 new MemoryMemberRepository() 이 부분이 중복 제거
@@ -33,6 +49,7 @@ public class AppConfig {
 
     @Bean
     public OrderService orderService() {
+        System.out.println("call AppConfig.orderService");;
         return new OrderServiceImpl(memberRepository(), discountPolicy());
     }
 
