@@ -1,15 +1,19 @@
 package hello.core.order;
 
+import com.sun.source.tree.UsesTree;
+import hello.core.annotation.MainDiscountPolicy;
 import hello.core.dicount.DiscountPolicy;
-import hello.core.dicount.FixDiscountPolicy;
 import hello.core.dicount.RateDiscountPolicy;
 import hello.core.member.Member;
 import hello.core.member.MemberRepository;
 import hello.core.member.MemoryMemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
+// @RequiredArgsConstructor => final이 붙은 필수 값의 생성자 생성
 public class OrderServiceImpl implements OrderService {
 //  ⓐ주문 생성 요청이 오면,,
 //  3.(AppConfig 이후..)private final MemberRepository memberRepository = new MemoryMemberRepository();
@@ -25,14 +29,48 @@ public class OrderServiceImpl implements OrderService {
  */
 //  3.(AppConfig 이후..)private DiscountPolicy discountPolicy;
 
+    // * 필드 주입
     private final MemberRepository memberRepository;
     private final DiscountPolicy discountPolicy;
 
+    /*
+    스프링 컨테이너는 크게 2가지 LifeCycle존재
+    1. 스프링 빈을 등록하는 단계
+    2. 연관관계를 자동으로 주입(@Autowired)하는 단계
+     */
+
+    /*
+    @Autowired(required = false) // * 수정자 주입(setter 주입: 선택, 변경 의존관계)
+    public void setMemberRepository(MemberRepository memberRepository) {
+        System.out.println("memberRepository = " + memberRepository);
+        this.memberRepository = memberRepository;
+    }
+
     @Autowired
-    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+    public void setDiscountPolicy(DiscountPolicy discountPolicy) {
+        System.out.println("discountPolicy = " + discountPolicy);
+        this.discountPolicy = discountPolicy;
+    }
+    */
+
+    @Autowired // ★ * 생성자 주입(불변, 필수 의존관계) ★
+    // ★ 생성자 주입을 선택해라! => 불변, 누락방지, final키워드
+    public OrderServiceImpl(MemberRepository memberRepository, @MainDiscountPolicy DiscountPolicy discountPolicy) {
+        // System.out.println("1. OrderServiceImpl.OrderServiceImpl");
+        // System.out.println("1. memberRepository = " + memberRepository);
+        // System.out.println("1. discountPolicy = " + discountPolicy);
         this.memberRepository = memberRepository;
         this.discountPolicy = discountPolicy;
     }
+
+    /*
+    @Autowired // * 일반 메서드 주입
+    public void init(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+        this.memberRepository = memberRepository;
+        this.discountPolicy = discountPolicy;
+    }
+    */
+
 /*
     3.(AppConfig 이후..) OrderServiceImpl은 DIP를 잘 지킴.
     MemberRepository, DiscountPolicy와 같은 인터페이스(추상)에만 의존하고 있고,
